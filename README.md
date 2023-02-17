@@ -1,4 +1,4 @@
-<h1> Universitatea Babes Bolyai Projects</h1>
+<h1> Universitatea Babes Bolyai</h1>
 <p>This is a collection of projects completed by a student at Universitatea Babes Bolyai in Cluj-Napoca. The projects cover a range of topics and technologies, including:</p>
     <ul>
       <li>Artificial Intelligence</li>
