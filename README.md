@@ -8,4 +8,6 @@
       <li>Mathematics</li>
     </ul>
     <p>The goal of this repository is to showcase the student's skills and knowledge in various areas of computer science and software development. It can also serve as a resource for other students or anyone interested in the projects.</p>
+    <img src="https://www.ubbcluj.ro/images/logo/logo_cs.png">
+    <a href="http://www.cs.ubbcluj.ro"> Babes Bolyai University - Departament of Computer Science </a>
     <p>This repository will be updated as new projects are completed.</p>
