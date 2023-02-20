@@ -1,0 +1,275 @@
+     1                                  ; Se citesc din fisierul numere.txt mai multe numere (pare si impare). 
+     2                                  ; Sa se creeze 2 siruri rezultat N si P astfel: N ;- doar numere impare si P - doar numere pare. 
+     3                                  ; Afisati cele 2 siruri rezultate pe ecran.
+     4                                  bits  32
+     5                                  global  start
+     6                                  import  printf msvcrt.dll
+     7                                  import  fopen msvcrt.dll
+     8                                  import  fclose msvcrt.dll
+     9                                  import  fread msvcrt.dll
+    10                                  import  exit msvcrt.dll
+    11                                  extern  printf, exit, fopen, fread, fclose
+    12                                  
+    13                                  %include "transformare.asm"
+     1                              <1> bits 32
+     2                              <1> 
+     3                              <1> ;global start      
+     4                              <1> global transformare
+     5                              <1> 
+     6                              <1> 
+     7                              <1> ;extern exit,printf               
+     8                              <1> ;import exit msvcrt.dll    
+     9                              <1> ;import printf msvcrt.dll
+    10                              <1> ;segment data use32 public data
+    11                              <1>     ;sir db '232', 0
+    12                              <1>     ;len equ $-sir
+    13                              <1>     ;format db "%d", 0
+    14                              <1> ;segment code use32 public code
+    15                              <1>     transformare:
+    16                              <1>     ; esp-adresa de revenire
+    17                              <1>     ; esp+4-adresa sir
+    18                              <1>     ; esp+8-valoare len
+    19                              <1>         
+    20 00000000 8B4C2408            <1>         mov ecx, [esp+8] ; ecx = len
+    21 00000004 49                  <1>         dec ecx          ; ecx = ecx - 1 ; numarul de cifre
+    22 00000005 BB01000000          <1>         mov ebx, 1       ; ebx = 1 ; putere a lui 10
+    23 0000000A BA00000000          <1>         mov edx, 0       ; edx = 0 ; rezultatul final
+    24 0000000F 8B742404            <1>         mov esi, [esp+4] ; esi = adresa sir
+    25                              <1>         repeta:
+    26 00000013 B800000000          <1>             mov eax, 0   ; eax = 0
+    27 00000018 8A440EFF            <1>             mov al, [esi+ecx-1] ; al = sir + len - 1
+    28 0000001C 2C30                <1>             sub al, '0'  ; al = al - 30 = al - '0'
+    29 0000001E F6E3                <1>             mul bl       ; ax = al * bl
+    30 00000020 01C2                <1>             add edx, eax ; edx = edx + eax ;
+    31                              <1>             
+    32 00000022 88D8                <1>             mov al, bl   ; al = bl ; al = 1
+    33 00000024 B30A                <1>             mov bl, 10   ; bl = 10
+    34 00000026 F6E3                <1>             mul bl       ; ax = al * bl = 1 * 10 = 10
+    35 00000028 89C3                <1>             mov ebx,eax  ; ebx = eax ; se salveaza puterea lui 10
+    36                              <1>         
+    37 0000002A E2E7                <1>         loop repeta
+    38 0000002C C3                  <1>         ret
+    39                              <1>         
+    40                              <1>      ;start:
+    41                              <1>     
+    42                              <1>          ;push dword len ;esp + 4 * 2
+    43                              <1>          ;push dword sir ;esp + 4 * 1
+    44                              <1>          ;call transformare; esp + 0 ; adresa de revenire
+    45                              <1>          ;add esp, 4*2
+    46                              <1>          
+    47                              <1>          ; edx = rezultatul functiei
+    48                              <1>          
+    49                              <1>          ;push dword edx 
+    50                              <1>          ;push dword format
+    51                              <1>          ;call [printf]
+    52                              <1>          ;add esp ,4*2
+    53                              <1>         
+    54                              <1>         
+    55                              <1>          ;push    dword 0      
+    56                              <1>          ;call    [exit]       
+    14                                  %include  "reversed_transformare.asm"
+     1                              <1> bits 32
+     2                              <1> ;global start      
+     3                              <1> 
+     4                              <1> ;extern exit
+     5                              <1> ;extern printf               
+     6                              <1> ;import exit msvcrt.dll    
+     7                              <1> ;import printf msvcrt.dll
+     8                              <1> 
+     9                              <1> ;segment data use32 public data
+    10                              <1>     ;numar dd 2559
+    11                              <1>     ;format db "%s", 0
+    12                              <1>     ;sir times 10 db 0
+    13                              <1>     ;nr_cif db 4
+    14                              <1>     
+    15                              <1> ;segment code use32 public code
+    16                              <1>     global reversed_transformare  
+    17                              <1> 
+    18                              <1>     reversed_transformare:
+    19                              <1>     ; esp-adresa de revenire
+    20                              <1>     ; esp+4-adresa numarului de transformat
+    21                              <1>     ; esp+8-adresa numarului transformat in sir
+    22 0000002D B30A                <1>     mov bl, 10
+    23 0000002F 8B4C240C            <1>     mov ecx, dword[esp+12]; numarul de cif
+    24 00000033 8B7C2408            <1>     mov edi, dword[esp+8] ;sir
+    25 00000037 8B442404            <1>     mov eax, dword[esp+4] ;eax=numarul
+    26                              <1>     
+    27 0000003B FC                  <1>     cld
+    28                              <1>         
+    29                              <1>         repeta3:
+    30 0000003C 50                  <1>             push eax
+    31 0000003D 6658                <1>             pop ax
+    32 0000003F 665A                <1>             pop dx
+    33                              <1>             ; eax = dx:ax
+    34                              <1>             
+    35 00000041 F6F3                <1>             div bl ; al = ax / 10, ah = ax % 10
+    36 00000043 BA00000000          <1>             mov edx, 0
+    37 00000048 88C2                <1>             mov dl,al       ; dl = al ; dl = catul impartirii
+    38 0000004A 88E0                <1>             mov al, ah      ; al = restul impartirii
+    39 0000004C 0430                <1>             add al, "0"     ; al = al + 30
+    40 0000004E 88440FFF            <1>             mov [edi + ecx - 1], al
+    41 00000052 B800000000          <1>             mov eax, 0      ; eax = 0
+    42 00000057 89D0                <1>             mov eax, edx    ; eax = catul
+    43 00000059 49                  <1>             dec ecx         ; numarul de cifre
+    44 0000005A 83F800              <1>             cmp eax, 0      ; daca nu mai avem cifre iesi
+    45 0000005D 7402                <1>             je afara
+    46                              <1>             
+    47 0000005F EBDB                <1>         jmp repeta3
+    48                              <1>     afara:
+    49 00000061 89F8                <1>     mov eax, edi
+    50                              <1>     ;rezultat in eax
+    51 00000063 C3                  <1>     ret
+    52                              <1> 
+    53                              <1>      ;start:
+    54                              <1>          ;push dword [nr_cif]
+    55                              <1>          ;push dword sir
+    56                              <1>          ;push dword [numar]
+    57                              <1>          ;call reversed_transformare
+    58                              <1>          ;add esp, 4 * 3
+    59                              <1>             
+    60                              <1>          ;push dword eax
+    61                              <1>          ;push dword format
+    62                              <1>          ;call [printf]
+    63                              <1>          ;add esp ,4*2
+    64                              <1>         
+    65                              <1>     
+    66                              <1>          ; exit(0)
+    67                              <1>          ;push    dword 0      ; push the parameter for exit onto the stack
+    68                              <1>          ;call    [exit]       ; call exit to terminate the program
+    15                                  
+    16                                  segment  data use32 public data
+    17 00000064 6E756D6572652E7478-         nume_fisier db "numere.txt", 0
+    17 0000006D 7400               
+    18 0000006F 7200                        mod_acces db "r", 0
+    19 00000071 FFFFFFFF                    descriptor_fis dd -1
+    20 00000075 536972756C20637520-         format_afisare1 db "Sirul cu numere pare: %s", 0
+    20 0000007E 6E756D657265207061-
+    20 00000087 72653A20257300     
+    21 0000008E 536972756C20637520-         format_afisare2 db "Sirul cu numere impare: %s", 0
+    21 00000097 6E756D65726520696D-
+    21 000000A0 706172653A20257300 
+    22                                      len equ 100
+    23 000000A9 00<rept>                    text times len db 0
+    24 0000010D 00000000                    nr_car_citite dd 0
+    25 00000111 00<rept>                    s1 times len db 0
+    26 00000175 00<rept>                    s2 times len db 0
+    27 000001D9 0A00                        endline db 10, 0
+    28 000001DB 257300                      formats db "%s", 0
+    29 000001DE 00<rept>                    sir_numar times 4 db 0
+    30 000001E2 00000000                    nr_caractere dd 0
+    31 000001E6 00<rept>                    sir times 10 db 0
+    32 000001F0 00<rept>                    aux times 100 db 0
+    33 00000254 00                          i db 0
+    34 00000255 00                          j db 0
+    35                                  segment  code use32 public code
+    36                                  start:
+    37                                      ;DESCHIDERE FISIER
+    38 00000000 68[6F000000]                push dword mod_acces
+    39 00000005 68[64000000]                push dword nume_fisier
+    40 0000000A FF15[00000000]              call [fopen]
+    41 00000010 83C408                      add esp, 4*2
+    42                                      
+    43 00000013 83F800                      cmp eax, 0
+    44 00000016 0F8405010000                je final
+    45                                      
+    46 0000001C A3[71000000]                    mov [descriptor_fis], eax
+    47 00000021 FF35[71000000]                  push dword [descriptor_fis]
+    48 00000027 6A64                            push dword len
+    49 00000029 6A01                            push dword 1
+    50 0000002B 68[A9000000]                    push dword text
+    51 00000030 FF15[00000000]                  call [fread] ;se citestc maxim 100 de caractere din sir
+    52 00000036 83C410                          add esp, 4 * 4      
+    53                                  
+    54 00000039 A3[0D010000]                    mov [nr_car_citite], eax
+    55                                          
+    56 0000003E 8B0D[0D010000]                  mov ecx, [nr_car_citite] ; Numarul de repetari efectuate
+    57 00000044 BE[A9000000]                    mov esi, text
+    58                                          
+    59 00000049 BB00000000                      mov ebx, 0
+    60                                     ;CITIRE NUMERE DIN FISIER
+    61                                     repeta_citire:
+    62 0000004E AC                             lodsb  ;al = [esi + x]
+    63 0000004F 3C20                           cmp al, " "
+    64 00000051 757C                           jne e_Caracter
+    65                                              ; daca nu e caracter se face transformarea
+    66 00000053 51                                  push ecx 
+    67 00000054 89D9                                mov ecx, ebx
+    68 00000056 2B0D[E2010000]                      sub ecx, dword[nr_caractere]
+    69 0000005C 890D[E2010000]                      mov dword[nr_caractere], ecx
+    70                                              
+    71                                              ;transformare(sir, nr_caractere)
+    72 00000062 53                                          push ebx
+    73 00000063 68[F0010000]                                push dword aux
+    74 00000068 E8(00000000)                                call transformare ;rezultat in edx
+    75 0000006D 83C408                                      add esp, 4 * 2
+    76                                       
+    77                                              ;verificare paritate
+    78 00000070 F7C201000000                        test edx,1           ; mask-out all bit except the lowest one
+    79 00000076 7429                                jz   even_value     ; when lowest bit is zero, value is even
+    80                                                  ; odd value
+    81 00000078 FF35[E2010000]                          push dword [nr_caractere]
+    82 0000007E 68[E6010000]                            push dword sir
+    83 00000083 52                                      push edx
+    84 00000084 E8(2D000000)                            call reversed_transformare
+    85 00000089 83C40C                                  add esp, 4 * 3
+    86 0000008C 89C2                                    mov edx, eax
+    87 0000008E A1[55020000]                            mov eax, [j]
+    88 00000093 8990[75010000]                          mov [s2 + eax],edx
+    89 00000099 40                                      inc eax
+    90 0000009A A3[55020000]                            mov [j], eax
+    91 0000009F EB27                                    jmp again
+    92                                              even_value:
+    93 000000A1 FF35[E2010000]                          push dword [nr_caractere]
+    94 000000A7 68[E6010000]                            push dword sir
+    95 000000AC 52                                      push edx
+    96 000000AD E8(2D000000)                            call reversed_transformare
+    97 000000B2 83C40C                                  add esp, 4 * 3
+    98 000000B5 89C2                                    mov edx, eax
+    99 000000B7 A1[54020000]                            mov eax, [i]
+   100 000000BC 8990[11010000]                          mov [s1 + eax],edx
+   101 000000C2 40                                      inc eax
+   102 000000C3 A3[54020000]                            mov [i], eax
+   103                                              again:
+   104 000000C8 BB00000000                              mov ebx, 0
+   105 000000CD EB07                                    jmp sari
+   106                                         e_Caracter:
+   107 000000CF 8883[F0010000]                      mov [aux + ebx], al
+   108 000000D5 43                                  inc ebx
+   109                                         sari:
+   110                                         ;curatare sir 
+   111                                         ;mov ecx, 10
+   112                                         ;curatare:
+   113                                         ;     mov byte[sir+ecx-1], 0
+   114                                         ;     dec ecx
+   115                                         ;     cmp ecx, 0
+   116                                         ;jne curatare
+   117 000000D6 59                             pop ecx
+   118 000000D7 E275                           loop repeta_citire
+   118          ******************       warning: byte data exceeds bounds [-w+number-overflow]
+   119                                     
+   120                                     
+   121                                     ;AFISARE
+   122 000000D9 68[11010000]                push s1
+   123 000000DE 68[75000000]                push format_afisare1
+   124 000000E3 FF15[00000000]              call [printf]
+   125 000000E9 83C408                      add esp, 4 * 2
+   126                                      
+   127 000000EC 68[D9010000]                push dword endline
+   128 000000F1 68[DB010000]                push dword formats
+   129 000000F6 FF15[00000000]              call [printf]
+   130 000000FC 83C408                      add esp, 4 * 2
+   131                                      
+   132 000000FF 68[75010000]                push s2
+   133 00000104 68[8E000000]                push format_afisare2
+   134 00000109 FF15[00000000]              call [printf]
+   135 0000010F 83C408                      add esp, 4 * 2
+   136                                      
+   137                                     ;inchidere fisier
+   138 00000112 FF35[71000000]             push dword [descriptor_fis]
+   139 00000118 FF15[00000000]             call [fclose]
+   140 0000011E 83C404                     add esp, 4
+   141                                          
+   142                                      final:
+   143                                      
+   144 00000121 6A00                    	push 0
+   145 00000123 FF15[00000000]          	call [exit]

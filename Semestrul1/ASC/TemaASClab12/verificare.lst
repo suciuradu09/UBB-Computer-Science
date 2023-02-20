@@ -1,0 +1,36 @@
+     1                                  bits 32
+     2                                  
+     3                                  ; informam asamblorul ca dorim ca functia _afisare_sir sa fie disponibila altor unitati de compilare
+     4                                  global _paritate
+     5                                  extern _printf
+     6                                  ; linkeditorul poate folosi segmentul public de date si pentru date din afara
+     7                                  segment data public data use32
+     8                                  
+     9                                  ; codul scris in asamblare este dispus intr-un segment public, posibil a fi partajat cu alt cod extern
+    10                                  segment code public code use32
+    11                                  
+    12                                  ; int paritate(int num)
+    13                                  
+    14                                  _paritate:
+    15                                      ; creare cadru de stiva pentru programul apelat
+    16 00000000 55                          push ebp
+    17 00000001 89E5                        mov ebp, esp
+    18 00000003 B800000000                  mov eax, 0
+    19 00000008 8B5508                      mov edx, [ebp + 8]
+    20                                      ; obtinem argumentele transmise pe stiva functiei sumaNumere
+    21                                      ; la locatia [ebp+4] se afla adresa de return (valoarea din EIP la momentul apelului)
+    22                                      ; la locatia [ebp] se afla valoarea ebp pentru apelant
+    23 0000000B F7C201000000                test edx, 1
+    24 00000011 7407                        jz par
+    25                                         ;impar
+    26 00000013 B800000000                     mov eax, 0
+    27 00000018 EB05                            jmp sari
+    28                                      par:
+    29                                          ;par
+    30 0000001A B801000000                      mov eax, 1
+    31                                      sari:
+    32                                      ; refacem cadrul de stiva pentru programul apelant
+    33 0000001F 89EC                        mov esp, ebp
+    34 00000021 5D                          pop ebp
+    35                                  
+    36 00000022 C3                          ret

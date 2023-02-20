@@ -1,0 +1,49 @@
+     1                                  ;Problema 13.
+     2                                  ;Dandu-se 4 octeti, sa se obtina in AX suma numerelor intregi ;reprezentate de bitii 4-6 ai celor 4 octeti.
+     3                                  
+     4                                  bits 32 ; assembling for the 32 bits architecture
+     5                                  
+     6                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     7                                  global start        
+     8                                  
+     9                                  ; declare external functions needed by our program
+    10                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+    11                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+    12                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    13                                  
+    14                                  ; our data is declared here (the variables needed by our program)
+    15                                  segment data use32 class=data
+    16 00000000 7A                              a db 7Ah ; 0111 1010b
+    17 00000001 2F                              b db 2Fh ; 0010 1111b
+    18 00000002 61                              c db 61h ; 0110 0001b
+    19 00000003 2E                              d db 2Eh ; 0010 1110b
+    20                                          ;Rezultat final: 17 = 11h = 0001 0001b
+    21                                  
+    22                                  segment code use32 class=code
+    23                                      start:
+    24 00000000 66B80000                        MOV AX,0 ; AX = 0000h
+    25 00000004 A0[00000000]                    MOV AL, [a] ; AL = 7Ah = 0111 1010b
+    26 00000009 66BB0000                        MOV BX,0 ; BX = 0000h
+    27 0000000D 8A1D[01000000]                  MOV BL, [b] ; BL = 2Fh = 0010 1111b
+    28 00000013 66B90000                        MOV CX,0 ; CX = 0000h
+    29 00000017 8A0D[02000000]                  MOV CL, [c] ; CL = 61h = 1110 0001b
+    30 0000001D 66BA0000                        MOV DX,0 ; DX = 0000h
+    31 00000021 8A15[03000000]                  MOV DL, [d] ; DL = 2Eh = 0010 1110b
+    32                                          
+    33 00000027 2470                            AND AL, 70h ; AL = 0111 0000b = 70h
+    34 00000029 80E370                          AND BL, 70h ; BL = 0010 0000b = 20h
+    35 0000002C 80E170                          AND CL, 70h ; CL = 0110 0000b = 60h
+    36 0000002F 80E270                          AND DL, 70h ; DL = 0010 0000b = 20h
+    37                                          
+    38 00000032 C0E804                          SHR AL, 4 ; AL = 0000 0111b = 07h
+    39 00000035 C0EB04                          SHR BL, 4 ; BL = 0000 0010b = 02h
+    40 00000038 C0E904                          SHR CL, 4 ; CL = 0000 0110b = 06h
+    41 0000003B C0EA04                          SHR DL, 4 ; DL = 0000 0010b = 02h
+    42                                          
+    43 0000003E 6601D8                          ADD AX, BX; AX = AX + BX = 09h
+    44 00000041 6601C8                          ADD AX, CX; AX = AX + CX = 0Fh
+    45 00000044 6601D0                          ADD AX, DX; AX = AX + DX = 11h
+    46                                          
+    47                                          ; exit(0)
+    48 00000047 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    49 00000049 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

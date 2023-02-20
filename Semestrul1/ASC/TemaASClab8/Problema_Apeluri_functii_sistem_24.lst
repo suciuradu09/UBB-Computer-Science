@@ -1,0 +1,107 @@
+     1                                  bits 32
+     2                                  
+     3                                  global start        
+     4                                  
+     5                                  
+     6                                  extern exit,printf,scanf              
+     7                                  import exit msvcrt.dll    
+     8                                  import printf msvcrt.dll
+     9                                  import scanf msvcrt.dll
+    10                                  ;Se citesc de la tastatura doua numere a si b. 
+    11                                  ;Sa se calculeze valoarea expresiei (a/b)*k, k fiind o constanta definita in segmentul de date.
+    12                                  ;Afisati valoarea expresiei (in baza 2).
+    13                                  segment data use32 class=data
+    14 00000000 256400                      format db "%d", 0
+    15 00000003 61203D2000                  amesaj db "a = ", 0
+    16 00000008 62203D2000                  bmesaj db "b = ", 0
+    17 0000000D 56616C6F6172656120-         mesaj db "Valoarea expresiei (a/b)*k este: ", 0
+    17 00000016 657870726573696569-
+    17 0000001F 2028612F62292A6B20-
+    17 00000028 657374653A2000     
+    18 0000002F 622074726562756965-         mesaj_eroare db "b trebuie sa fie diferit de 0", 0 
+    18 00000038 207361206669652064-
+    18 00000041 696665726974206465-
+    18 0000004A 203000             
+    19 0000004D 0000                        a dw 0
+    20 0000004F 0000                        a1 dw 0
+    21 00000051 0000                        b dw 0
+    22 00000053 0000                        b1 dw 0
+    23 00000055 0200                        k dw 2 
+    24 00000057 00<rept>                    rezultat times 33 db 0
+    25                                  segment code use32 class=code
+    26                                      start:
+    27                                          ; afisare: a = 
+    28 00000000 68[03000000]                    push dword amesaj
+    29 00000005 FF15[00000000]                  call [printf]
+    30 0000000B 83C404                          add esp, 4 * 1
+    31                                          
+    32                                          ;citire valoare a de la tastatura
+    33 0000000E 68[4D000000]                    push dword a
+    34 00000013 68[00000000]                    push dword format
+    35 00000018 FF15[00000000]                  call [scanf]
+    36 0000001E 83C408                          add esp, 4 * 2
+    37                                          
+    38                                          ; afisare: b = 
+    39 00000021 68[08000000]                    push dword bmesaj
+    40 00000026 FF15[00000000]                  call [printf]
+    41 0000002C 83C404                          add esp, 4 * 1
+    42                                          
+    43                                          ;citire valoare b de la tastatura
+    44 0000002F 68[51000000]                    push dword b
+    45 00000034 68[00000000]                    push dword format
+    46 00000039 FF15[00000000]                  call [scanf]
+    47 0000003F 83C408                          add esp, 4 * 2
+    48 00000042 833D[51000000]00                cmp dword [b], 0
+    49 00000049 745F                            je eroare
+    50                                          
+    51                                              ;afisare mesaj "Valoarea expresiei (a/b)*k este: "
+    52 0000004B 68[0D000000]                        push dword mesaj
+    53 00000050 FF15[00000000]                      call [printf]
+    54 00000056 83C404                              add esp, 4 * 1
+    55                                              
+    56                                              ;pun in EDX:EAX valoarea lui a
+    57 00000059 66B80000                            mov ax, 0
+    58 0000005D 66A1[4D000000]                      mov ax, [a]
+    59 00000063 66BA0000                            mov dx, 0    ; DX:AX = a
+    60                                              
+    61 00000067 66F735[51000000]                    div word [b] ; AX = DX:AX / [b] = a/b
+    62                                  
+    63 0000006E 66F725[55000000]                    mul word [k] ; DX:AX = AX * [k]
+    64 00000075 6652                                push dx
+    65 00000077 6650                                push ax
+    66 00000079 58                                  pop eax
+    67                                              ;transformare in baza 2
+    68 0000007A B920000000                          mov ecx, 32
+    69 0000007F BF[57000000]                        mov edi, rezultat
+    70 00000084 BB00000080                          mov ebx, 80000000h ; masca pentru primul bit
+    71                                              repeta:
+    72 00000089 85D8                                    test eax, ebx
+    73 0000008B 7505                                    jnz bit1
+    74                                                      
+    75                                                      ; daca bitul e 0
+    76 0000008D C60730                                      mov byte [edi], '0'
+    77 00000090 EB03                                        jmp bit0 ; daca bitul e zero
+    78                                                      
+    79                                                  bit1:
+    80                                                      ;bitul e 1
+    81 00000092 C60731                                      mov byte [edi], '1'
+    82                                                  bit0:
+    83                                                  
+    84 00000095 47                                      inc edi
+    85 00000096 D1EB                                    shr ebx, 1 ; se muta spre dreapta cu o pozitie toti bitii din ebx
+    86 00000098 E2EF                                loop repeta
+    87                                          
+    88                                              ;afisare rezultat
+    89 0000009A 68[57000000]                        push rezultat
+    90 0000009F FF15[00000000]                      call [printf]
+    91 000000A5 83C408                              add esp, 4 * 2
+    92 000000A8 EB0E                            jmp final
+    93                                       
+    94                                          eroare: 
+    95 000000AA 68[2F000000]                        push mesaj_eroare
+    96 000000AF FF15[00000000]                      call [printf]
+    97 000000B5 83C404                              add esp, 4 * 1
+    98                                              
+    99                                          final:
+   100 000000B8 6A00                                push dword 0
+   101 000000BA FF15[00000000]                      call [exit]

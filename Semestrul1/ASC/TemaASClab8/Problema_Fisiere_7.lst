@@ -1,0 +1,109 @@
+     1                                  ;Se da un fisier text. 
+     2                                  ;Sa se citeasca continutul fisierului, sa se determine litera mica (lowercase) 
+     3                                  ;cu cea mai mare frecventa si sa se afiseze acea litera, impreuna cu frecventa acesteia.
+     4                                  ;Numele fisierului text este definit in segmentul de date.
+     5                                  bits 32 
+     6                                  
+     7                                  
+     8                                  global start        
+     9                                  
+    10                                  extern exit,fopen,fclose,fread,printf
+    11                                  
+    12                                  import printf msvcrt.dll
+    13                                  import fopen msvcrt.dll
+    14                                  import fread msvcrt.dll
+    15                                  import fclose msvcrt.dll             
+    16                                  import exit msvcrt.dll    
+    17                                  
+    18                                  segment data use32 class=data
+    19 00000000 612E74787400                nume_fisier db "a.txt", 0 ;numele fisierului care va fi deschis
+    20 00000006 7200                        mod_acces db "r", 0 ;modul de deschidere a fisierului
+    21                                      
+    22 00000008 256400                      format db "%d", 0
+    23 0000000B FFFFFFFF                    descriptor_f dd -1
+    24                                      len equ 100    ; numarul maxim de caractere din fisier
+    25 0000000F 00<rept>                    text times 100 db 0 ; sirul in care se va citi textul din fisier
+    26 00000073 00<rept>                    fv times 28 db 0 ; vector de frecventa pentru caractere
+    27 0000008F 4C6974657261206375-         afisare_format db "Litera cu cea mai mare frecventa este %c, si apare de %d ori",0
+    27 00000098 20636561206D616920-
+    27 000000A1 6D6172652066726563-
+    27 000000AA 76656E746120657374-
+    27 000000B3 652025632C20736920-
+    27 000000BC 617061726520646520-
+    27 000000C5 2564206F726900     
+    28 000000CC 00000000                    fv_maxima dd 0
+    29 000000D0 256300                      formatc db "%c", 0
+    30                                  segment code use32 class=code
+    31                                      start:
+    32                                          ;fopen(nume, mod_acces)
+    33 00000000 68[06000000]                    push dword mod_acces
+    34 00000005 68[00000000]                    push dword nume_fisier
+    35 0000000A FF15[00000000]                  call [fopen]
+    36 00000010 83C408                          add esp, 4 * 2
+    37                                          
+    38 00000013 A3[0B000000]                    mov [descriptor_f], eax
+    39                                          
+    40 00000018 83F800                          cmp eax, 0 ; verificam daca fisierul este deschis corect
+    41 0000001B 0F848A000000                    je fin
+    42                                          
+    43                                          ;eax = fread(text, 1,len, descriptor_f)
+    44 00000021 FF35[0B000000]                  push dword [descriptor_f]
+    45 00000027 6A64                            push dword len
+    46 00000029 6A01                            push dword 1
+    47 0000002B 68[0F000000]                    push dword text
+    48 00000030 FF15[00000000]                  call [fread]
+    49 00000036 83C410                          add esp, 4 * 4
+    50                                          ;eax = numarul de caractere citite
+    51 00000039 BB00000000                      mov ebx, 0
+    52                                          
+    53 0000003E 89C1                            mov ecx, eax ;ecx = numarul de caractere citite
+    54 00000040 BE[0F000000]                    mov esi, text ;
+    55 00000045 FC                              cld
+    56 00000046 E354                            jecxz no_caracters
+    57 00000048 BB00000000                      mov ebx, 0 ; aici salvez caracterul cu fv maxima
+    58                                          repeta:
+    59 0000004D 51                                  push ecx
+    60 0000004E B800000000                          mov eax, 0 ; in el se stocheaza caracterul citit
+    61 00000053 BA00000000                          mov edx, 0 ; ajuta la calculul frecventei maxime
+    62                                              ;verificam daca, caracterul citit e litera mica
+    63 00000058 AC                                  lodsb 
+    64                                              ; AL = caracterul citit 
+    65 00000059 3C61                                cmp al, 97
+    66 0000005B 7223                                jb nu_e_mica
+    67 0000005D 3C7A                                cmp al, 122
+    68 0000005F 771F                                ja nu_e_mica
+    69 00000061 2C61                                    sub al, 97
+    70 00000063 8080[73000000]01                        add byte [fv + eax], 1
+    71                                                  ;calcul fv max
+    72 0000006A 8A90[73000000]                          mov dl, [fv + eax]
+    73 00000070 3A15[CC000000]                          cmp dl, [fv_maxima]
+    74                                                  
+    75                                              
+    76 00000076 7208                                    jb nu_e_mai_mare
+    77 00000078 8815[CC000000]                              mov [fv_maxima], dl ; frecventa salvata
+    78 0000007E 89C3                                        mov ebx, eax ; caracterul salvat
+    79                                                  nu_e_mai_mare:
+    80                                                  ;/////////
+    81                                              nu_e_mica:
+    82 00000080 59                                  pop ecx
+    83 00000081 E2CA                            loop repeta
+    84                                          
+    85                                          ;printf(format, caracter, frecventa)
+    86 00000083 FF35[CC000000]                  push dword [fv_maxima]
+    87 00000089 B261                            mov dl, 'a'
+    88 0000008B 01DA                            add edx, ebx
+    89 0000008D 52                              push dword edx
+    90 0000008E 68[8F000000]                    push dword afisare_format
+    91 00000093 FF15[00000000]                  call [printf]
+    92 00000099 83C40C                          add esp, 4 * 3
+    93                                    
+    94                                  
+    95                                          no_caracters:
+    96                                          ;fclose(descriptor_f)
+    97 0000009C FF35[0B000000]                  push dword [descriptor_f]
+    98 000000A2 FF15[00000000]                  call [fclose]
+    99 000000A8 83C404                          add esp, 4
+   100                                        
+   101                                          fin:
+   102 000000AB 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+   103 000000AD FF15[00000000]                  call    [exit]       ; call exit to terminate the program

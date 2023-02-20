@@ -1,0 +1,57 @@
+     1                                  bits 32
+     2                                  
+     3                                  global start      
+     4                                  global transformare
+     5                                  
+     6                                  
+     7                                  extern exit,printf               
+     8                                  import exit msvcrt.dll    
+     9                                  import printf msvcrt.dll
+    10                                  ;segment data use32 public data
+    11                                      ;sir db '200', 0
+    12                                      ;len equ $-sir
+    13                                      ;format db "%d", 0
+    14                                  segment code use32 public code
+    15                                      transformare:
+    16                                      ; esp-adresa de revenire
+    17                                      ; esp+4-adresa sir
+    18                                      ; esp+8-valoare len
+    19                                          
+    20 00000000 8B4C2408                        mov ecx, [esp+8] ; ecx = len
+    21 00000004 49                              dec ecx          ; ecx = ecx - 1 ; numarul de cifre
+    22 00000005 BB01000000                      mov ebx, 1       ; ebx = 1 ; putere a lui 10
+    23 0000000A BA00000000                      mov edx, 0       ; edx = 0 ; rezultatul final
+    24 0000000F 8B742404                        mov esi, [esp+4] ; esi = adresa sir
+    25                                          repeta:
+    26 00000013 B800000000                          mov eax, 0   ; eax = 0
+    27 00000018 8A440EFF                            mov al, [esi+ecx-1] ; al = sir + len - 1
+    28 0000001C 2C30                                sub al, '0'  ; al = al - 30 = al - '0'
+    29 0000001E F6E3                                mul bl       ; ax = al * bl
+    30 00000020 01C2                                add edx, eax ; edx = edx + eax ;
+    31                                              
+    32 00000022 88D8                                mov al, bl   ; al = bl ; al = 1
+    33 00000024 B30A                                mov bl, 10   ; bl = 10
+    34 00000026 F6E3                                mul bl       ; ax = al * bl = 1 * 10 = 10
+    35 00000028 89C3                                mov ebx,eax  ; ebx = eax ; se salveaza puterea lui 10
+    36                                          
+    37 0000002A E2E7                            loop repeta
+    38                                          ;edx = rezultat final
+    39 0000002C C3                              ret
+    40                                          
+    41                                       ;start:
+    42                                      
+    43                                           ;push dword len ;esp + 4 * 2
+    44                                           ;push dword sir ;esp + 4 * 1
+    45                                           ;call transformare; esp + 0 ; adresa de revenire
+    46                                           ;add esp, 4*2
+    47                                           
+    48                                           ; edx = rezultatul functiei
+    49                                           
+    50                                           ;push dword edx 
+    51                                           ;push dword format
+    52                                           ;call [printf]
+    53                                           ;add esp ,4*2
+    54                                          
+    55                                          
+    56                                          ;push    dword 0      
+    57                                          ;call    [exit]       

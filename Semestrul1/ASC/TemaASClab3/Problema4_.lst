@@ -1,0 +1,73 @@
+     1                                  ;Adunari si scaderi - problema 24 - fara semn
+     2                                  ;(a + b + c) - d + (b - c)
+     3                                  ;a - byte, b - word, c - double word, d - qword
+     4                                  ; 
+     5                                  bits 32 ; assembling for the 32 bits architecture
+     6                                  
+     7                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     8                                  global start        
+     9                                  
+    10                                  ; declare external functions needed by our program
+    11                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+    12                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+    13                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    14                                  
+    15                                  ; our data is declared here (the variables needed by our program)
+    16                                  segment data use32 class=data
+    17 00000000 08                              a db 8
+    18 00000001 0400                            b dw 4
+    19 00000003 03000000                        c dd 3
+    20 00000007 0100000000000000                d dq 1
+    21 0000000F <res 00000008>                  r resq 1 ; Rezerv un quadword in memorie pentru rezultat
+    22                                  ; our code starts here
+    23                                  segment code use32 class=code
+    24                                      start:
+    25 00000000 A0[00000000]                    mov AL, [a] ; AL = a = 8
+    26 00000005 668B1D[01000000]                mov BX, [b] ; BX = b =  4
+    27 0000000C 8B0D[03000000]                  mov ECX,[c] ; ECX = c = 3
+    28 00000012 B400                            mov AH, 0 ; AL - > AX = a = 8
+    29 00000014 6601D8                          add AX, BX  ; AX = AX + BX = a + b = 8 + 4 = 12
+    30 00000017 66BA0000                        mov DX, 0 ; AX - > DX:AX = a + b = 12
+    31                                          ;CX:BX = c
+    32 0000001B 668B1D[03000000]                mov BX, word[c+0]
+    33 00000022 668B0D[07000000]                mov CX, word[c+4]
+    34                                          ;DX:AX+
+    35                                          ;CX:BX
+    36 00000029 6601CA                          add DX, CX ;DX = DX + CX
+    37 0000002C 6601D8                          add AX, BX ;AX = AX + BX
+    38                                          ;DX:AX = a + b + c = 12 + 3 = 15
+    39                                          
+    40                                          ;DX:AX -> EDX:EAX = a + b + c = 15
+    41                                          
+    42 0000002F 8B1D[07000000]                  mov EBX, dword[d+0]
+    43 00000035 8B0D[0B000000]                  mov ECX, dword[d+4]
+    44                                          ; ECX : EBX = d = 1
+    45                                          
+    46                                          ; EDX : EAX -
+    47                                          ; ECX : EBX
+    48                                          ; (a + b + c) - d = 15 - 1 = 14
+    49 0000003B 29D8                            sub EAX, EBX ;EAX = EAX - EBX 
+    50 0000003D 29CA                            sub EDX, ECX ;EDX = EDX - ECX
+    51                                          
+    52 0000003F 89D1                            mov ECX, EDX
+    53 00000041 89C3                            mov EBX, EAX 
+    54                                          ;EDX : EAX -> ECX : EBX = (a + b + c) - d = 14
+    55                                          
+    56 00000043 66A1[01000000]                  mov AX, [b] ; AX = b = 4
+    57 00000049 66BA0000                        mov DX,0    ; AX -> DX:AX = b = 4
+    58                                          ;DX:AX - [c]
+    59 0000004D 661B05[03000000]                sbb AX, word[c]; AX = AX - c - CF =  b - c = 4 - 3 = 1
+    60                                          
+    61                                          ;DX:AX -> EDX:EAX = b - c = 5
+    62                                          
+    63 00000054 F8                              clc ; CF = 0
+    64 00000055 01C3                            add EBX, EAX ;EBX = EBX + EAX 
+    65 00000057 11D1                            adc ECX, EDX ;ECX = ECX + EDX + CF 
+    66                                          ;ECX : EBX = (a + b + c) - d + (b - c) = 14 + 1 = 15
+    67                                          
+    68 00000059 891D[0F000000]                  mov dword[r+0], EBX  
+    69 0000005F 890D[13000000]                  mov dword[r+4], ECX
+    70                                          
+    71                                          ; exit(0)
+    72 00000065 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    73 00000067 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

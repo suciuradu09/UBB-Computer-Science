@@ -1,0 +1,10 @@
+1,frontend,app crashes randomly,6
+2,backend,database exceeds memory quota,9
+3,backend,server crashes on duplicate id,8
+4,frontend,memory full,5
+5,frontend,app crashes at menu,2
+6,frontend,no id,3
+7,frontend,app crashes at ceva,7
+8,backend,app crashes at open,9
+9,frontend,memory corrupted,6
+10,backend,app crashes at open,2

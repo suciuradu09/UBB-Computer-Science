@@ -1,0 +1,43 @@
+     1                                  ;Problema 24.
+     2                                  ;Se da dublucuvantul M. Sa se obtina dublucuvantul MNew astfel:
+     3                                  ;bitii 0-3 a lui MNew sunt identici cu bitii 5-8 a lui M
+     4                                  ;bitii 4-7 a lui MNew au valoarea 1
+     5                                  ;bitii 27-31 a lui MNew au valoarea 0
+     6                                  ;bitii 8-26 din MNew sunt identici cu bitii 8-26 a lui M.
+     7                                  
+     8                                  bits 32 ; assembling for the 32 bits architecture
+     9                                  
+    10                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+    11                                  global start        
+    12                                  
+    13                                  ; declare external functions needed by our program
+    14                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+    15                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+    16                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    17                                  
+    18                                  ; our data is declared here (the variables needed by our program)
+    19                                  segment data use32 class=data
+    20 00000000 F7635C1D                        M dd 1D5C63F7h ; 0001 1101 0101 1100 0110 0011 1111 0111b 
+    21 00000004 00000000                        MNew dd 0
+    22                                          ;Rezultat :      0000 0101 0101 1100 0110 0011 1111 1111b = 055C63FFh
+    23                                  ; our code starts here
+    24                                  segment code use32 class=code
+    25                                      start:
+    26 00000000 A1[04000000]                    MOV EAX, [MNew]
+    27 00000005 8B15[00000000]                  MOV EDX, [M]
+    28 0000000B 81E2E0010000                    AND EDX, 000001E0h ; EDX = 0000 0000 0000 0000 0000 0001 1110 0000b 
+    29 00000011 B105                            MOV CL, 5
+    30 00000013 D3EA                            SHR EDX, CL         ; EDX = 0000 0000 0000 0000 0000 0000 0000 1111b =0000000Fh 
+    31 00000015 09D0                            OR EAX, EDX          ; EAX = 0000 0000 0000 0000 0000 0000 0000 1111b =0000000Fh 
+    32                                          
+    33 00000017 0DF0000000                      OR EAX, 000000F0h;   ; EAX = 0000 0000 0000 0000 0000 0000 1111 1111b =000000FFh
+    34                                          
+    35 0000001C 8B15[00000000]                  MOV EDX, [M]        ; Reinitializare DX
+    36                                          
+    37 00000022 81E200FFFF07                    AND EDX, 07FFFF00h  ; EDX = 0000 0101 0101 1100 0110 0011 0000 0000b
+    38 00000028 09D0                            OR EAX, EDX          ; EAX = 0000 0101 0101 1100 0110 0011 1111 1111b = 055C63FFh
+    39                                          
+    40                                          ;Rezultat final in AX
+    41                                          ; exit(0)
+    42 0000002A 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    43 0000002C FF15[00000000]                  call    [exit]       ; call exit to terminate the program

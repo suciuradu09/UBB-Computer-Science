@@ -1,0 +1,71 @@
+     1                                  ;Adunari si scaderi - problema 24 - cu semn
+     2                                  ;((a + b) + (a + c) + (b + c)) - d
+     3                                  ;a - byte, b - word, c - double word, d - qword
+     4                                  ;((-2 + 5) + (-2 + 9) + (5 + 9)) - 3 = (3 + 7 + 14) - 3 = 24 - 3 = 21 = 0001 0101b= 15h 
+     5                                  bits 32 ; assembling for the 32 bits architecture
+     6                                  
+     7                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     8                                  global start        
+     9                                  
+    10                                  ; declare external functions needed by our program
+    11                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+    12                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+    13                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    14                                  
+    15                                  ; our data is declared here (the variables needed by our program)
+    16                                  segment data use32 class=data
+    17 00000000 FE                              a db -2
+    18 00000001 0500                            b dw 5
+    19 00000003 09000000                        c dd 9
+    20 00000007 0300000000000000                d dq 3
+    21 0000000F <res 00000008>                  r resq 1 ; Rezerv un quadword in memorie pentru rezultat
+    22                                  ; our code starts here
+    23                                  segment code use32 class=code
+    24                                      start:
+    25 00000000 A0[00000000]                    mov AL, [a] ;AL = a = -2
+    26 00000005 6698                            cbw         ;AL -> AX = a = -2
+    27 00000007 668B15[01000000]                mov DX, [b] ;DX = b = 5
+    28 0000000E 6601C2                          add DX,AX   ;DX = DX + AX = a + b = -2 + 5 = 3
+    29                                          
+    30 00000011 98                              cwde        ;EAX = AX = a = 3
+    31 00000012 8B1D[03000000]                  mov EBX, [c];EBX = c = 9
+    32 00000018 01C3                            add EBX,EAX ;EBX = EBX + EAX = c + a = 9 + (-2) = 7
+    33                                          
+    34 0000001A B800000000                      mov EAX ,0  
+    35 0000001F 6689D0                          mov AX,DX   ;AX = DX = a + b = 3
+    36 00000022 98                              cwde        ;EAX = AX = a + b = 3
+    37                                          
+    38 00000023 01D8                            add EAX, EBX;EAX = EAX + EBX = (a + b) + (a + c) = 3 + 7 = 10
+    39                                          
+    40 00000025 89C3                            mov EBX, EAX;EBX = EAX = (a + b) + (a + c) = 10
+    41                                          
+    42 00000027 B800000000                      mov EAX, 0  ;EAX = 0000 0000 0000 0000 0000 0000 0000 0000b
+    43 0000002C 66A1[01000000]                  mov AX, [b] ;AX = b = 5
+    44 00000032 98                              cwde        ;EAX = AX = b = 5
+    45 00000033 BA00000000                      mov EDX, 0  ;EDX = 0000 0000 0000 0000 0000 0000 0000 0000b
+    46 00000038 8B15[03000000]                  mov EDX,[c]  ;EDX = c = 9
+    47 0000003E 01C2                            add EDX,EAX ;EDX = EDX + EAX = b + c = 5 + 9 = 14
+    48                                          
+    49 00000040 B800000000                      mov EAX, 0  ;EAX = 0000 0000 0000 0000 0000 0000 0000 0000b
+    50 00000045 01D8                            add EAX,EBX ;EAX = EAX + EBX = (a + b) + (a + c) = 10
+    51 00000047 01D0                            add EAX,EDX ;EAX = EAX + EDX = (a + b) + (a + c) + (b + c) = 10 + 14 = 24
+    52                                          
+    53 00000049 99                              cdq         ;EDX:EAX = EAX = (a + b) + (a + c) + (b + c) = 24
+    54                                          
+    55                                          ; d -> EBX:ECX
+    56 0000004A 8B0D[07000000]                  mov ECX, dword[d+0] ; 00 03h
+    57 00000050 8B1D[0B000000]                  mov EBX, dword[d+4] ; 00 00h
+    58                                          ;EBX:ECX = 00 00 00 03 h
+    59                                          ;((a + b) + (a + c) + (b + c)) - d
+    60                                          ; EDX : EAX -
+    61                                          ; EBX : ECX
+    62 00000056 F8                              clc ; clear carry flag (CF = 0)
+    63 00000057 29C8                            sub EAX, ECX ; EAX = EAX - ECX       00 18 - 00 03
+    64 00000059 19DA                            sbb EDX, EBX ; EDX = EDX - EBX - CF  00 00 - 00 00
+    65                                          ;              EDX : EAX = 00 00 00 15h
+    66 0000005B A3[0F000000]                    mov dword [r+0], EAX 
+    67 00000060 8915[13000000]                  mov dword [r+4], EDX 
+    68                                          
+    69                                          ; exit(0)
+    70 00000066 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    71 00000068 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

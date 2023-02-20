@@ -1,0 +1,33 @@
+     1                                  ;Problema 10
+     2                                  ;Sa se inlocuiasca bitii 0-3 ai octetului B cu bitii 8-11 ai cuvantului A.
+     3                                  
+     4                                  bits 32 ; assembling for the 32 bits architecture
+     5                                  
+     6                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     7                                  global start        
+     8                                  
+     9                                  ; declare external functions needed by our program
+    10                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+    11                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+    12                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    13                                  
+    14                                  ; our data is declared here (the variables needed by our program)
+    15                                  segment data use32 class=data
+    16 00000000 2A43                            a dw 432Ah ; 0100 0011 0010 1010b
+    17 00000002 25                              b db 25h   ;           0010 0101b
+    18                                  ; our code starts here
+    19                                  segment code use32 class=code
+    20                                      start:
+    21 00000000 66B80000                        MOV AX, 0
+    22 00000004 B300                            MOV BL, 0
+    23 00000006 66A1[00000000]                  MOV AX, [a]      ; AX = 0100 0011 0010 1010b = 432Ah
+    24 0000000C 8A1D[02000000]                  MOV BL, [b]      ; BL =           0010 0101b =   25h
+    25 00000012 B108                            MOV CL, 8        ; CL = 08h
+    26 00000014 66D3E8                          SHR AX, CL       ; AX = 0000 0000 0100 0011b = 0043h
+    27 00000017 80E3F0                          AND BL, 11110000b; BL =      0010 0000b = 20h
+    28 0000001A 6683E00F                        AND AX, 000Fh    ; AX = 0000 0000 0000 0011b = 0003h
+    29 0000001E B700                            MOV BH, 0        ; BH = 0000 0000
+    30 00000020 6609C3                          OR BX, AX        ; BX = 0000 0000 0010 0011b = 23h           
+    31                                          
+    32 00000023 6A00                            push    dword 0      ; push the parameter for exit onto the 
+    33 00000025 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

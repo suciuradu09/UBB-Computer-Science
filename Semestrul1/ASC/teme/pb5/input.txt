@@ -1,0 +1,4 @@
+rep:
+;fscanf()
+cmp cuv, 0
+jne rep

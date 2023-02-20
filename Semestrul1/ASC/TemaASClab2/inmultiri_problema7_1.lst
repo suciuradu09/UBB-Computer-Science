@@ -1,0 +1,22 @@
+     1                                  ; Înmulțiri și împărțiri - problema 7
+     2                                  ; [100*(d+3)-10]/d
+     3                                  bits 32 
+     4                                  
+     5                                  global  start 
+     6                                  
+     7                                  extern  exit 
+     8                                  import  exit msvcrt.dll
+     9                                          
+    10                                  segment  data use32 class=data 
+    11 00000000 0200                        d dw 2  ; declar o variabila de tip word
+    12                                      
+    13                                  segment  code use32 class=code
+    14                                  start: 
+    15 00000000 66B86400                    MOV ax, 100
+    16 00000004 668305[00000000]03          ADD word [d], 3
+    17 0000000C 66F725[00000000]            MUL word[d]
+    18 00000013 6683E80A                    SUB ax, 10
+    19 00000017 66F735[00000000]            DIV word [d]
+    20                                      
+    21 0000001E 6A00                    	push   dword 0 
+    22 00000020 FF15[00000000]          	call   [exit]

@@ -1,0 +1,27 @@
+     1                                  ; Adunări și scăderi - problema 24
+     2                                  ; (a-c)+(b-d)
+     3                                  bits 32 
+     4                                  
+     5                                  global  start 
+     6                                  
+     7                                  extern  exit 
+     8                                  import  exit msvcrt.dll
+     9                                          
+    10                                  segment  data use32 class=data 
+    11 00000000 0A00                    	a dw 10 ; declar o variabila de tip byte
+    12 00000002 0700                    	b dw 7  ; declar o variabila de tip byte
+    13 00000004 0800                        c dw 8  ; declar o variabila de tip byte
+    14 00000006 0500                        d dw 5  ; declar o variabila de tip byte
+    15                                  segment  code use32 class=code
+    16                                  start: 
+    17                                  
+    18 00000000 66A1[00000000]          	MOV AX, [a]; AL = a
+    19 00000006 662B05[04000000]            SUB AX, [c]; AL = a - c
+    20                                      
+    21 0000000D 668B15[02000000]            MOV DX, [b]; DL = b
+    22 00000014 662B15[06000000]            SUB DX, [d]; DL = b - d
+    23                                      
+    24 0000001B 6601D0                      ADD AX,DX ; AX = ( a - c ) + ( b - d )
+    25                                      
+    26 0000001E 6A00                    	push   dword 0 
+    27 00000020 FF15[00000000]          	call   [exit]

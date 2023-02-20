@@ -1,0 +1,34 @@
+ mov edi, s1
+                                        repeta1:
+                                            lodsb ;	In AL se incarcă octetul de la adresa <DS:ESI>
+                                            push eax
+                                            call paritate ;veficare paritate
+                                            
+                                            cmp ebx, 0
+                                            cld
+                                            jne daca_nu_este_par
+                                                ;daca este par
+                                                stosb
+                                            daca_nu_este_par:
+
+                                            
+                                        loop repeta1
+                                        
+                                        mov ecx, [nr_car_citite]
+                                        mov edi, s2
+                                        cld
+                                        mov esi, buffer
+                                        repeta2:
+                                            lodsb ;	In AL se incarcă octetul de la adresa <DS:ESI>
+                                            push eax
+                                            call paritate ;veficare paritate
+                                            
+                                            cmp ebx, 0
+                                            cld
+                                            je daca_este_par
+                                                ;daca nu este par
+                                               
+                                                stosb
+                                            daca_este_par:
+                                            
+                                        loop repeta2

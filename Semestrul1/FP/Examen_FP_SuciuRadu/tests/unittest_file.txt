@@ -1,0 +1,10 @@
+A;A;Balet;1000
+;A;Balet;1000
+A;A;Balet;1000
+A;A;Balet;1000
+;A;Balet;1000
+A;A;Balet;1000
+A;A;Balet;1000
+A;A;Balet;1000
+B;B;Balet;4050
+C;C;Balet;12140
